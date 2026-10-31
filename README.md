@@ -20,3 +20,5 @@ Run the program:
 go run .
 ```
 
+## ToDo
+- [ ] Uninstalling apps
