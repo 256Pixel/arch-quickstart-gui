@@ -235,5 +235,15 @@ func GetDefaultCatalog() []Category {
 				},
 			},
 		},
+		{
+			Title: "System & Snapshots",
+			Packages: []Software{
+				{
+					DisplayName: "Snapper + auto-snapshots (Pacman)",
+					Manager:     "pacman",
+					Packages:    []string{"snapper", "snap-pac", "grub-btrfs"},
+				},
+			},
+		},
 	}
 }
