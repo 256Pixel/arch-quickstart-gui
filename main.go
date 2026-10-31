@@ -20,6 +20,44 @@ var (
 	downloadBtn *widget.Button
 )
 
+func mergeTasks(tasks []src.InstallTask) []src.InstallTask {
+    var rootScript strings.Builder
+    var flatpakPkgs []string
+    var names []string
+
+    for _, t := range tasks {
+        names = append(names, t.DisplayName)
+        switch t.Manager {
+        case "pacman":
+            for _, p := range t.Packages {
+                fmt.Fprintf(&rootScript, "pacman -S --noconfirm --needed %s\n", p)
+            }
+        case "bash":
+            rootScript.WriteString(t.Script)
+            rootScript.WriteString("\n")
+        case "flatpak":
+            flatpakPkgs = append(flatpakPkgs, t.Packages...)
+        }
+    }
+
+    var merged []src.InstallTask
+    if rootScript.Len() > 0 {
+        merged = append(merged, src.InstallTask{
+            DisplayName: strings.Join(names, ", "),
+            Manager:     "bash",
+            Script:      rootScript.String(),
+        })
+    }
+    if len(flatpakPkgs) > 0 {
+        merged = append(merged, src.InstallTask{
+            DisplayName: "Flatpak apps",
+            Manager:     "flatpak",
+            Packages:    flatpakPkgs,
+        })
+    }
+    return merged
+}
+
 func runInstallCommand(task src.InstallTask) error {
 	var cmd *exec.Cmd
 
@@ -105,15 +143,15 @@ func main() {
 	progressBar.Hide()
 
 	downloadBtn = widget.NewButton("Download & Install Selected", func() {
-		var tasks []src.InstallTask
+		rawTasks := getPackagesTasks()
 
-		// Collect tasks from packages tab
-		tasks = append(tasks, getPackagesTasks()...)
-
-		if len(tasks) == 0 {
+		if len(rawTasks) == 0 {
 			statusLabel.SetText("No packages selected to install.")
 			return
 		}
+
+		// Combine everything so the password is requested only once
+		tasks := mergeTasks(rawTasks)
 
 		downloadBtn.Disable()
 		progressBar.Show()

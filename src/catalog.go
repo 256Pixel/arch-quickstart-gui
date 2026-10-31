@@ -126,7 +126,7 @@ func GetDefaultCatalog() []Category {
 				{
 					DisplayName: "VirtualBox (Pacman)",
 					Manager:     "pacman",
-					Packages:    []string{"virtualbox", "virtualbox-host-modules-arch"},
+					Packages:    []string{"virtualbox"},
 				},
 				{
 					DisplayName: "GNOME Boxes (Flatpak)",
