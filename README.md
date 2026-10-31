@@ -19,4 +19,4 @@ Run the program:
 ```sh
 go run .
 ```
-We use "." instead "main.go" because use multiple files.
+

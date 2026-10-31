@@ -168,6 +168,11 @@ func GetDefaultCatalog() []Category {
 					Manager:     "flatpak",
 					Packages:    []string{"com.valvesoftware.Steam"},
 				},
+				{
+					DisplayName: "Wine (Pacman)",
+					Manager:     "pacman",
+					Packages:    []string{"wine"},
+				},
 			},
 		},
 		{
@@ -207,6 +212,11 @@ func GetDefaultCatalog() []Category {
 					DisplayName: "VLC Media Player (Pacman)",
 					Manager:     "pacman",
 					Packages:    []string{"vlc"},
+				},
+				{
+					DisplayName: "OBS Studio (Pacman)",
+					Manager:     "pacman",
+					Packages:    []string{"obs-studio"},
 				},
 				{
 					DisplayName: "Signal Desktop (Pacman)",
