@@ -5,7 +5,7 @@ import "fyne.io/fyne/v2/widget"
 // Software represents a single installable unit (which may contain multiple packages)
 type Software struct {
 	DisplayName string
-	Manager     string   // "pacman", "flatpak", or "vscode"
+	Manager     string   // "pacman" or "flatpak"
 	Packages    []string // List of package IDs to install
 	IsInstalled bool
 	Checkbox    *widget.Check
@@ -49,11 +49,6 @@ func GetDefaultCatalog() []Category {
 					Packages:    []string{"git"},
 				},
 				{
-					DisplayName: "VS Code OSS Build (Pacman)",
-					Manager:     "pacman",
-					Packages:    []string{"code"},
-				},
-				{
 					DisplayName: "Zed Editor (Pacman)",
 					Manager:     "pacman",
 					Packages:    []string{"zed"},
@@ -61,12 +56,22 @@ func GetDefaultCatalog() []Category {
 				{
 					DisplayName: "C / C++ Build Tools (Pacman)",
 					Manager:     "pacman",
-					Packages:    []string{"base-devel", "cmake", "gdb"},
+					Packages:    []string{"base-devel", "gdb"},
 				},
 				{
-					DisplayName: "Python (Pacman)",
+					DisplayName: "CMake (Pacman)",
 					Manager:     "pacman",
-					Packages:    []string{"python", "python-pip"},
+					Packages:    []string{"cmake"},
+				},
+				{
+					DisplayName: "OpenCV (Pacman)",
+					Manager:     "pacman",
+					Packages:    []string{"opencv"},
+				},
+				{
+					DisplayName: "Python & uv (Pacman)",
+					Manager:     "pacman",
+					Packages:    []string{"python", "python-pip", "uv"},
 				},
 				{
 					DisplayName: "Go (Pacman)",
@@ -77,6 +82,21 @@ func GetDefaultCatalog() []Category {
 					DisplayName: "Rust (Pacman)",
 					Manager:     "pacman",
 					Packages:    []string{"rust"},
+				},
+				{
+					DisplayName: "Zig (Pacman)",
+					Manager:     "pacman",
+					Packages:    []string{"zig"},
+				},
+				{
+					DisplayName: "Kotlin (Pacman)",
+					Manager:     "pacman",
+					Packages:    []string{"kotlin"},
+				},
+				{
+					DisplayName: "Clojure (Pacman)",
+					Manager:     "pacman",
+					Packages:    []string{"clojure"},
 				},
 				{
 					DisplayName: "Dart (Pacman)",
@@ -96,37 +116,32 @@ func GetDefaultCatalog() []Category {
 			},
 		},
 		{
-			Title: "VS Code Extensions",
-			Packages: []Software{
-				{
-					DisplayName: "C/C++ Tools (VS Code)",
-					Manager:     "vscode",
-					Packages:    []string{"ms-vscode.cpptools"},
-				},
-				{
-					DisplayName: "Python & Pylance (VS Code)",
-					Manager:     "vscode",
-					Packages:    []string{"ms-python.python", "ms-python.vscode-pylance"},
-				},
-				{
-					DisplayName: "Go (VS Code)",
-					Manager:     "vscode",
-					Packages:    []string{"golang.go"},
-				},
-				{
-					DisplayName: "PlatformIO IDE (VS Code)",
-					Manager:     "vscode",
-					Packages:    []string{"platformio.platformio-ide"},
-				},
-			},
-		},
-		{
 			Title: "Containers & Virtualization",
 			Packages: []Software{
 				{
 					DisplayName: "Docker Engine & Compose (Pacman)",
 					Manager:     "pacman",
 					Packages:    []string{"docker", "docker-compose"},
+				},
+				{
+					DisplayName: "VirtualBox (Pacman)",
+					Manager:     "pacman",
+					Packages:    []string{"virtualbox", "virtualbox-host-modules-arch"},
+				},
+				{
+					DisplayName: "GNOME Boxes (Flatpak)",
+					Manager:     "flatpak",
+					Packages:    []string{"org.gnome.Boxes"},
+				},
+			},
+		},
+		{
+			Title: "AI & Machine Learning",
+			Packages: []Software{
+				{
+					DisplayName: "Ollama (Pacman)",
+					Manager:     "pacman",
+					Packages:    []string{"ollama"},
 				},
 			},
 		},
@@ -146,27 +161,22 @@ func GetDefaultCatalog() []Category {
 			},
 		},
 		{
-			Title: "Security & Privacy",
+			Title: "Gaming",
 			Packages: []Software{
 				{
-					DisplayName: "1Password (Flatpak)",
+					DisplayName: "Steam (Flatpak)",
 					Manager:     "flatpak",
-					Packages:    []string{"com.onepassword.OnePassword"},
+					Packages:    []string{"com.valvesoftware.Steam"},
 				},
+			},
+		},
+		{
+			Title: "Downloads & P2P",
+			Packages: []Software{
 				{
-					DisplayName: "KeePassXC (Pacman)",
+					DisplayName: "qBittorrent (Pacman)",
 					Manager:     "pacman",
-					Packages:    []string{"keepassxc"},
-				},
-				{
-					DisplayName: "Bitwarden (Pacman)",
-					Manager:     "pacman",
-					Packages:    []string{"bitwarden"},
-				},
-				{
-					DisplayName: "VeraCrypt (Pacman)",
-					Manager:     "pacman",
-					Packages:    []string{"veracrypt"},
+					Packages:    []string{"qbittorrent"},
 				},
 			},
 		},

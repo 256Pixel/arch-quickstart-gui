@@ -28,14 +28,12 @@ func runInstallCommand(task src.InstallTask) error {
 		args := append([]string{"pacman", "-S", "--noconfirm"}, task.Packages...)
 		cmd = exec.Command("pkexec", args...)
 	case "flatpak":
+		// Ensure the flathub remote exists for user to avoid "No remote refs found for ‘flathub’" on fresh installs
+		remoteCmd := exec.Command("flatpak", "remote-add", "--if-not-exists", "--user", "flathub", "https://dl.flathub.org/repo/flathub.flatpakrepo")
+		_ = remoteCmd.Run()
+
 		args := append([]string{"install", "--user", "-y", "flathub"}, task.Packages...)
 		cmd = exec.Command("flatpak", args...)
-	case "vscode":
-		args := []string{}
-		for _, ext := range task.Packages {
-			args = append(args, "--install-extension", ext)
-		}
-		cmd = exec.Command("code", args...)
 	case "bash":
 		cmd = exec.Command("pkexec", "bash", "-c", task.Script)
 	default:
@@ -80,22 +78,6 @@ func getInstalledFlatpakPackages() map[string]bool {
 	return installed
 }
 
-func getInstalledVSCodeExtensions() map[string]bool {
-	installed := make(map[string]bool)
-	cmd := exec.Command("code", "--list-extensions")
-	output, err := cmd.Output()
-	if err != nil {
-		return installed
-	}
-
-	for _, ext := range strings.Split(string(output), "\n") {
-		if ext = strings.TrimSpace(ext); ext != "" {
-			installed[strings.ToLower(ext)] = true
-		}
-	}
-	return installed
-}
-
 func main() {
 	a := app.NewWithID("com.T0rquemada.archquickstart")
 	w := a.NewWindow("Arch Quickstart")
@@ -104,16 +86,13 @@ func main() {
 	// 1. Scan the system once at startup
 	installedPacman := getInstalledPacmanPackages()
 	installedFlatpak := getInstalledFlatpakPackages()
-	installedVSCode := getInstalledVSCodeExtensions()
 
-	// 2. Build the tabs and get the task collector functions
-	packagesTabUI, getPackagesTasks := src.BuildPackagesTab(installedPacman, installedFlatpak, installedVSCode)
-	securityTabUI, getSecurityTasks := src.BuildSecurityTab(installedPacman)
+	// 2. Build the packages tab
+	packagesTabUI, getPackagesTasks := src.BuildPackagesTab(installedPacman, installedFlatpak)
 
-	// Create a Tab widget with our two files' UIs
+	// Single tab container
 	tabs := container.NewAppTabs(
 		container.NewTabItem("Packages & Apps", packagesTabUI),
-		container.NewTabItem("Security", securityTabUI),
 	)
 
 	// ==========================================
@@ -128,9 +107,8 @@ func main() {
 	downloadBtn = widget.NewButton("Download & Install Selected", func() {
 		var tasks []src.InstallTask
 
-		// Combine tasks from both tabs
+		// Collect tasks from packages tab
 		tasks = append(tasks, getPackagesTasks()...)
-		tasks = append(tasks, getSecurityTasks()...)
 
 		if len(tasks) == 0 {
 			statusLabel.SetText("No packages selected to install.")
@@ -158,15 +136,18 @@ func main() {
 				fmt.Printf("Successfully installed %s!\n", task.DisplayName)
 			}
 
-			if !hasError {
-				statusLabel.SetText("Installation complete! You can close the app.")
-			} else {
-				statusLabel.SetText("Installation failed. Please check the terminal output.")
-			}
+			// Safely dispatch UI updates back to Fyne's main thread
+			fyne.Do(func() {
+				if !hasError {
+					statusLabel.SetText("Installation complete! You can close the app.")
+				} else {
+					statusLabel.SetText("Installation failed. Please check the terminal output.")
+				}
 
-			progressBar.Stop()
-			progressBar.Hide()
-			downloadBtn.Enable()
+				progressBar.Stop()
+				progressBar.Hide()
+				downloadBtn.Enable()
+			})
 		}()
 	})
 
