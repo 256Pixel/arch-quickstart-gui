@@ -1,8 +1,6 @@
 package src
 
 import (
-	"strings"
-
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/container"
 	"fyne.io/fyne/v2/widget"
@@ -16,7 +14,7 @@ type InstallTask struct {
 }
 
 // BuildPackagesTab creates the UI for the packages tab and returns a function to collect selected tasks
-func BuildPackagesTab(installedPacman, installedFlatpak, installedVSCode map[string]bool) (*container.Scroll, func() []InstallTask) {
+func BuildPackagesTab(installedPacman, installedFlatpak map[string]bool) (*container.Scroll, func() []InstallTask) {
 	mainContentBox := container.NewVBox()
 
 	catalogTitle := widget.NewLabelWithStyle("Installing packages/apps", fyne.TextAlignLeading, fyne.TextStyle{Bold: true})
@@ -44,11 +42,6 @@ func BuildPackagesTab(installedPacman, installedFlatpak, installedVSCode map[str
 					}
 				} else if pkg.Manager == "flatpak" {
 					if !installedFlatpak[pkgName] {
-						allPackagesInstalled = false
-						break
-					}
-				} else if pkg.Manager == "vscode" {
-					if !installedVSCode[strings.ToLower(pkgName)] {
 						allPackagesInstalled = false
 						break
 					}
