@@ -26,6 +26,7 @@ go run .
 - [ ] Update packages
 
 ### Apps
-- [ ] AI & ML: TensorFlow, PyTorch
-- [ ] FreeCad
-- [ ] Audacity
+- [X] AI & ML: TensorFlow, PyTorch
+- [X] 3D: FreeCad (flatpak), Blender
+- [X] Audacity
+- [X] GIMP

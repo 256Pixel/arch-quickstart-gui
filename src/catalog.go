@@ -143,6 +143,16 @@ func GetDefaultCatalog() []Category {
 					Manager:     "pacman",
 					Packages:    []string{"ollama"},
 				},
+				{
+					DisplayName: "TensorFlow (Pacman)",
+					Manager:     "pacman",
+					Packages:    []string{"python-tensorflow"},
+				},
+				{
+					DisplayName: "PyTorch (Pacman)",
+					Manager:     "pacman",
+					Packages:    []string{"python-pytorch"},
+				},
 			},
 		},
 		{
@@ -157,6 +167,26 @@ func GetDefaultCatalog() []Category {
 					DisplayName: "OrcaSlicer (Flatpak)",
 					Manager:     "flatpak",
 					Packages:    []string{"com.orcaslicer.OrcaSlicer"},
+				},
+				{
+					DisplayName: "FreeCAD (Flatpak)",
+					Manager:     "flatpak",
+					Packages:    []string{"org.freecad.FreeCAD"},
+				},
+			},
+		},
+		{
+			Title: "Graphics & Design",
+			Packages: []Software{
+				{
+					DisplayName: "Blender (Pacman)",
+					Manager:     "pacman",
+					Packages:    []string{"blender"},
+				},
+				{
+					DisplayName: "GIMP (Pacman)",
+					Manager:     "pacman",
+					Packages:    []string{"gimp"},
 				},
 			},
 		},
@@ -217,6 +247,11 @@ func GetDefaultCatalog() []Category {
 					DisplayName: "OBS Studio (Pacman)",
 					Manager:     "pacman",
 					Packages:    []string{"obs-studio"},
+				},
+				{
+					DisplayName: "Audacity (Pacman)",
+					Manager:     "pacman",
+					Packages:    []string{"audacity"},
 				},
 				{
 					DisplayName: "Signal Desktop (Pacman)",
