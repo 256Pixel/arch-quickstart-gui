@@ -156,7 +156,7 @@ func GetDefaultCatalog() []Category {
 				{
 					DisplayName: "OrcaSlicer (Flatpak)",
 					Manager:     "flatpak",
-					Packages:    []string{"com.softfever3d.OrcaSlicer"},
+					Packages:    []string{"com.orcaslicer.OrcaSlicer"},
 				},
 			},
 		},

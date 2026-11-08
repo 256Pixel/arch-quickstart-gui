@@ -22,3 +22,10 @@ go run .
 
 ## ToDo
 - [ ] Uninstalling apps
+- [ ] Screenshots for README
+- [ ] Update packages
+
+### Apps
+- [ ] AI & ML: TensorFlow, PyTorch
+- [ ] FreeCad
+- [ ] Audacity
