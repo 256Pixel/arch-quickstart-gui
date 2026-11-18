@@ -21,12 +21,14 @@ go run .
 ```
 
 ## ToDo
-- [ ] Uninstalling apps
+- [X] Uninstalling apps
 - [ ] Screenshots for README
-- [ ] Update packages
 
 ### Apps
 - [X] AI & ML: TensorFlow, PyTorch
 - [X] 3D: FreeCad (flatpak), Blender
 - [X] Audacity
 - [X] GIMP
+- [X] PrusaSlicer
+- [X] Lutris
+- [X] ANycubic (AUR)

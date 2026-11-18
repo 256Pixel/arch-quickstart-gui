@@ -21,41 +21,51 @@ var (
 )
 
 func mergeTasks(tasks []src.InstallTask) []src.InstallTask {
-    var rootScript strings.Builder
-    var flatpakPkgs []string
-    var names []string
+	var rootScript strings.Builder
+	var flatpakPkgs []string
+	var yayPkgs []string
+	var names []string
 
-    for _, t := range tasks {
-        names = append(names, t.DisplayName)
-        switch t.Manager {
-        case "pacman":
-            for _, p := range t.Packages {
-                fmt.Fprintf(&rootScript, "pacman -S --noconfirm --needed %s\n", p)
-            }
-        case "bash":
-            rootScript.WriteString(t.Script)
-            rootScript.WriteString("\n")
-        case "flatpak":
-            flatpakPkgs = append(flatpakPkgs, t.Packages...)
-        }
-    }
+	for _, t := range tasks {
+		names = append(names, t.DisplayName)
+		switch t.Manager {
+		case "pacman":
+			for _, p := range t.Packages {
+				fmt.Fprintf(&rootScript, "pacman -S --noconfirm --needed %s\n", p)
+			}
+		case "yay":
+			yayPkgs = append(yayPkgs, t.Packages...)
+		case "bash":
+			rootScript.WriteString(t.Script)
+			rootScript.WriteString("\n")
+		case "flatpak":
+			flatpakPkgs = append(flatpakPkgs, t.Packages...)
+		}
+	}
 
-    var merged []src.InstallTask
-    if rootScript.Len() > 0 {
-        merged = append(merged, src.InstallTask{
-            DisplayName: strings.Join(names, ", "),
-            Manager:     "bash",
-            Script:      rootScript.String(),
-        })
-    }
-    if len(flatpakPkgs) > 0 {
-        merged = append(merged, src.InstallTask{
-            DisplayName: "Flatpak apps",
-            Manager:     "flatpak",
-            Packages:    flatpakPkgs,
-        })
-    }
-    return merged
+	var merged []src.InstallTask
+	if rootScript.Len() > 0 {
+		merged = append(merged, src.InstallTask{
+			DisplayName: strings.Join(names, ", "),
+			Manager:     "bash",
+			Script:      rootScript.String(),
+		})
+	}
+	if len(yayPkgs) > 0 {
+		merged = append(merged, src.InstallTask{
+			DisplayName: "AUR packages (" + strings.Join(yayPkgs, ", ") + ")",
+			Manager:     "yay",
+			Packages:    yayPkgs,
+		})
+	}
+	if len(flatpakPkgs) > 0 {
+		merged = append(merged, src.InstallTask{
+			DisplayName: "Flatpak apps",
+			Manager:     "flatpak",
+			Packages:    flatpakPkgs,
+		})
+	}
+	return merged
 }
 
 func runInstallCommand(task src.InstallTask) error {
@@ -63,10 +73,12 @@ func runInstallCommand(task src.InstallTask) error {
 
 	switch task.Manager {
 	case "pacman":
-		args := append([]string{"pacman", "-S", "--noconfirm"}, task.Packages...)
+		args := append([]string{"pacman", "-S", "--noconfirm", "--needed"}, task.Packages...)
 		cmd = exec.Command("pkexec", args...)
+	case "yay":
+		args := append([]string{"-S", "--noconfirm", "--needed"}, task.Packages...)
+		cmd = exec.Command("yay", args...)
 	case "flatpak":
-		// Ensure the flathub remote exists for user to avoid "No remote refs found for ‘flathub’" on fresh installs
 		remoteCmd := exec.Command("flatpak", "remote-add", "--if-not-exists", "--user", "flathub", "https://dl.flathub.org/repo/flathub.flatpakrepo")
 		_ = remoteCmd.Run()
 
@@ -74,6 +86,27 @@ func runInstallCommand(task src.InstallTask) error {
 		cmd = exec.Command("flatpak", args...)
 	case "bash":
 		cmd = exec.Command("pkexec", "bash", "-c", task.Script)
+	default:
+		return fmt.Errorf("unknown package manager")
+	}
+
+	output, err := cmd.CombinedOutput()
+	if err != nil {
+		return fmt.Errorf("Error: %v\nOutput: %s", err, string(output))
+	}
+	return nil
+}
+
+func runUninstallCommand(task src.InstallTask) error {
+	var cmd *exec.Cmd
+
+	switch task.Manager {
+	case "pacman", "yay":
+		args := append([]string{"pacman", "-Rns", "--noconfirm"}, task.Packages...)
+		cmd = exec.Command("pkexec", args...)
+	case "flatpak":
+		args := append([]string{"uninstall", "--user", "-y"}, task.Packages...)
+		cmd = exec.Command("flatpak", args...)
 	default:
 		return fmt.Errorf("unknown package manager")
 	}
@@ -121,21 +154,37 @@ func main() {
 	w := a.NewWindow("Arch Quickstart")
 	w.Resize(fyne.NewSize(850, 750))
 
-	// 1. Scan the system once at startup
 	installedPacman := getInstalledPacmanPackages()
 	installedFlatpak := getInstalledFlatpakPackages()
 
-	// 2. Build the packages tab
-	packagesTabUI, getPackagesTasks := src.BuildPackagesTab(installedPacman, installedFlatpak)
+	setStatus := func(msg string) {
+		fyne.Do(func() {
+			statusLabel.SetText(msg)
+		})
+	}
 
-	// Single tab container
+	onUninstall := func(task src.InstallTask, onSuccess func()) {
+		go func() {
+			err := runUninstallCommand(task)
+			if err != nil {
+				setStatus("Failed to uninstall " + task.DisplayName + ": " + err.Error())
+				return
+			}
+			onSuccess()
+		}()
+	}
+
+	packagesTabUI, getPackagesTasks, refreshPackagesUI := src.BuildPackagesTab(
+		installedPacman,
+		installedFlatpak,
+		onUninstall,
+		setStatus,
+	)
+
 	tabs := container.NewAppTabs(
 		container.NewTabItem("Packages & Apps", packagesTabUI),
 	)
 
-	// ==========================================
-	// BOTTOM CONTROL BAR
-	// ==========================================
 	statusLabel = widget.NewLabel("Ready")
 	statusLabel.Alignment = fyne.TextAlignCenter
 
@@ -150,7 +199,6 @@ func main() {
 			return
 		}
 
-		// Combine everything so the password is requested only once
 		tasks := mergeTasks(rawTasks)
 
 		downloadBtn.Disable()
@@ -174,10 +222,22 @@ func main() {
 				fmt.Printf("Successfully installed %s!\n", task.DisplayName)
 			}
 
-			// Safely dispatch UI updates back to Fyne's main thread
+			// Update installed maps using rawTasks so all individual packages (Pacman, Yay, Flatpak) are marked
+			if !hasError {
+				for _, t := range rawTasks {
+					for _, pkgName := range t.Packages {
+						if t.Manager == "flatpak" {
+							installedFlatpak[pkgName] = true
+						} else {
+							installedPacman[pkgName] = true
+						}
+					}
+				}
+			}
+
 			fyne.Do(func() {
 				if !hasError {
-					statusLabel.SetText("Installation complete! You can close the app.")
+					statusLabel.SetText("Installation complete!")
 				} else {
 					statusLabel.SetText("Installation failed. Please check the terminal output.")
 				}
@@ -185,6 +245,9 @@ func main() {
 				progressBar.Stop()
 				progressBar.Hide()
 				downloadBtn.Enable()
+				
+				// Redraws the UI instantly, turning checkboxes into delete icons
+				refreshPackagesUI()
 			})
 		}()
 	})

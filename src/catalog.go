@@ -5,7 +5,7 @@ import "fyne.io/fyne/v2/widget"
 // Software represents a single installable unit (which may contain multiple packages)
 type Software struct {
 	DisplayName string
-	Manager     string   // "pacman" or "flatpak"
+	Manager     string   // "pacman", "flatpak", or "yay"
 	Packages    []string // List of package IDs to install
 	IsInstalled bool
 	Checkbox    *widget.Check
@@ -169,6 +169,16 @@ func GetDefaultCatalog() []Category {
 					Packages:    []string{"com.orcaslicer.OrcaSlicer"},
 				},
 				{
+					DisplayName: "PrusaSlicer (Pacman)",
+					Manager:     "pacman",
+					Packages:    []string{"prusa-slicer"},
+				},
+				{
+					DisplayName: "Anycubic Slicer Next (AUR)",
+					Manager:     "yay",
+					Packages:    []string{"anycubic-slicer-next"},
+				},
+				{
 					DisplayName: "FreeCAD (Flatpak)",
 					Manager:     "flatpak",
 					Packages:    []string{"org.freecad.FreeCAD"},
@@ -197,6 +207,11 @@ func GetDefaultCatalog() []Category {
 					DisplayName: "Steam (Flatpak)",
 					Manager:     "flatpak",
 					Packages:    []string{"com.valvesoftware.Steam"},
+				},
+				{
+					DisplayName: "Lutris (Pacman)",
+					Manager:     "pacman",
+					Packages:    []string{"lutris"},
 				},
 				{
 					DisplayName: "Wine (Pacman)",
